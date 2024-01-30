@@ -1,26 +1,23 @@
 mod error;
+mod explorer;
+mod interface;
+mod utils;
 
-use core::time;
+pub use crate::error::{Error, Result};
 
-pub use self::error::{Error, Result};
-
-use alloy_chains::Chain;
-use alloy_primitives::{
-    address,
-    bytes::Buf,
-    hex::ToHex,
-    utils::{format_ether, parse_ether},
-    Address,
+use crate::{
+    explorer::Explorer,
+    interface::Interface,
+    utils::cli::{network_select, prompt},
 };
+use alloy_chains::Chain;
+use alloy_primitives::{address, utils::format_ether, Address};
 use ethers::{
     core::k256::pkcs8::der::Encode,
-    etherscan::account::{self, GenesisOption},
-    middleware::gas_oracle::etherscan,
-    providers::{CallBuilder, Caller, Middleware, Provider, StreamExt, Ws},
-    types::{transaction, BlockId, NameOrAddress, H160},
-    utils::{parse_checksummed, to_checksum},
+    providers::{Middleware, Provider, Ws},
+    types::{NameOrAddress, H160},
 };
-use foundry_block_explorers::{account::TokenQueryOption, contract, Client};
+use foundry_block_explorers::{account::TokenQueryOption, Client};
 use tokio;
 
 const POLYGON_URL: &str = "wss://polygon-bor.publicnode.com";
@@ -29,8 +26,18 @@ const API_KEY: &str = "";
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let provider = Provider::<Ws>::connect(POLYGON_URL).await?;
-    let explorer = Client::new(Chain::from_id(137), API_KEY)?;
+    let chain_id = network_select()?;
+
+    // load or ask
+    let api_key = prompt("Add your block explorer API KEY")?;
+
+    let Explorer {
+        provider,
+        explorer,
+        network,
+    } = Explorer::new(&api_key, chain_id).await?;
+
+    Interface::prompt();
 
     // let mut stream = provider.subscribe_blocks().await?;
     // while let Some(block) = stream.next().await {

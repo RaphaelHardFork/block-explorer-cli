@@ -9,8 +9,13 @@ unused = "allow"       # __DEV__
 
 
 [dependencies]
+# Async
+tokio = { version = "1.35.1", features = ["full"] }
+# CLI
+console = "0.15.8"
+dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
+# EVM
 alloy-chains = "0.1.10"
 alloy-primitives = "0.6.2"
 ethers = { version = "2.0.11", features = ["ws", "rustls", "openssl"] }
 foundry-block-explorers = "0.2.2"
-tokio = { version = "1.35.1", features = ["full"] }
